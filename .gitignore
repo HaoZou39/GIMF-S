@@ -1,0 +1,18 @@
+# Python
+**/__pycache__/
+*.pyc
+*.pyo
+*.py[cod]
+
+# IDE Config
+.idea/
+.vscode/
+
+# Result and Model
+result/
+*.pth
+*.pt
+
+# logs
+*.log
+profiler_logs/

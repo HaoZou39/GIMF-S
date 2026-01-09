@@ -31,7 +31,6 @@ import os
 from datetime import datetime
 import logging
 import logging.config
-import pytz
 import numpy as np
 import matplotlib.pyplot as plt
 import json
@@ -325,6 +324,10 @@ def copy_all_src(dst_root):
             src_abspath = os.path.abspath(value.__file__)
 
             if os.path.commonprefix([home_dir, src_abspath]) == home_dir:
+                # Check if source file exists before copying
+                if not os.path.exists(src_abspath):
+                    continue
+                    
                 dst_filepath = os.path.join(dst_path, os.path.basename(src_abspath))
 
                 if os.path.exists(dst_filepath):

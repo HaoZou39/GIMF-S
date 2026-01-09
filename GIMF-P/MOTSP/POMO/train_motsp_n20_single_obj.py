@@ -21,11 +21,11 @@ import math
 from MOTSPTrainer import TSPTrainer as Trainer
 
 ##########################################################################################
-# parameters
+# parameters - SINGLE OBJECTIVE VERSION
 env_params = {
     'problem_size': 20,
     'pomo_size': 20,
-    'num_objectives': 2,  # Number of objectives (1 for single-objective, 2+ for multi-objective)
+    'num_objectives': 1,  # Single objective!
 }
 
 model_params = {
@@ -38,8 +38,8 @@ model_params = {
     'ff_hidden_dim': 512,
     'eval_type': 'argmax',
     'hyper_hidden_dim': 256,
-    'num_objectives': 2,  # Must match env_params['num_objectives']
-    'in_channels': 2,  # For image, should equal num_objectives
+    'num_objectives': 1,  # Single objective!
+    'in_channels': 2,  # Can be >= 1 for single objective (all channels will use same coordinates)
     'patch_size': 16,
     'pixel_density': 10,
     'fusion_layer_num': 3,
@@ -87,7 +87,7 @@ optimizer_params = {
 trainer_params = {
     'use_cuda': USE_CUDA,
     'cuda_device_num': CUDA_DEVICE_NUM,
-    'dec_method': 'WS',
+    'dec_method': 'WS',  # For single objective, WS is just identity
     'epochs': 200,
     'train_episodes': 100 * 1000,
     'train_batch_size': 64,
@@ -96,23 +96,23 @@ trainer_params = {
         'img_save_interval': 10,
         'log_image_params_1': {
             'json_foldername': 'log_image_style',
-            'filename': 'style_tsp_20.json'
+            'filename': 'style_tsp_20_single.json'
         },
         'log_image_params_2': {
             'json_foldername': 'log_image_style',
-            'filename': 'style_loss_1.json'
+            'filename': 'style_loss_1_single.json'
         },
     },
     'model_load': {
         'enable': False,  # enable loading pre-trained model
-        'path': './result/saved_tsp20_model',  # directory path of pre-trained model and log files saved.
+        'path': './result/saved_tsp20_single_model',  # directory path of pre-trained model and log files saved.
         'epoch': 1,  # epoch version of pre-trained model to laod.
     }
 }
 
 logger_params = {
     'log_file': {
-        'desc': 'train__tsp_n20',
+        'desc': 'train__tsp_n20_single_obj',
         'filename': 'run_log'
     }
 }
@@ -153,3 +153,4 @@ def _print_config():
 
 if __name__ == "__main__":
     main()
+

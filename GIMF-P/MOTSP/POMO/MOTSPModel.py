@@ -81,8 +81,11 @@ class TSP_Encoder(nn.Module):
         embedding_dim = self.model_params['embedding_dim']
         encoder_layer_num = self.model_params['encoder_layer_num']
         fusion_layer_num = self.model_params['fusion_layer_num']
-
-        self.embedding = nn.Linear(4, embedding_dim)
+        num_objectives = self.model_params['num_objectives']
+        
+        # Input dimension = 2 * num_objectives (x,y coordinates for each objective)
+        coord_dim = 2 * num_objectives
+        self.embedding = nn.Linear(coord_dim, embedding_dim)
         self.embedding_patch = PatchEmbedding(**model_params)
         self.layers = nn.ModuleList([EncoderLayer(**model_params) for _ in range(encoder_layer_num - fusion_layer_num)])
         self.layers_img = nn.ModuleList(
@@ -92,12 +95,17 @@ class TSP_Encoder(nn.Module):
         self.fcp_img = nn.Parameter(torch.randn(1, self.model_params['bn_img_num'], embedding_dim))
 
     def forward(self, data, img):
-        # data.shape: (batch, problem, 2)
+        # data.shape: (batch, problem_size, 2*num_objectives)
+        #   e.g., (64, 20, 4) for 2 objectives: [x1, y1, x2, y2]
+        #   e.g., (64, 20, 2) for 1 objective: [x, y]
+        # img.shape:  (batch, in_channels, img_size, img_size)
+        #   where in_channels = num_objectives
 
         embedded_input = self.embedding(data)
-        # shape: (batch, problem, embedding)
+        # shape: (batch, problem_size, embedding_dim)  e.g., (64, 20, 128)
 
         embedded_patch = self.embedding_patch(img)
+        # shape: (batch, num_patches, embedding_dim)  e.g., (64, 9, 128)
 
         out = embedded_input
         out_img = embedded_patch
@@ -136,8 +144,19 @@ class PatchEmbedding(nn.Module):
         batch_size = x.shape[0]
 
         # patches
+        # Shape: (batch, channels, img_h, img_w) -> (batch, channels, n_patches_h, n_patches_w, patch_h, patch_w)
+        # Example: (64, 2, 48, 48) -> (64, 2, 3, 3, 16, 16)
+        #          where 3x3 is the grid of patches, and 16x16 is pixels within each patch
         patches = x.unfold(2, self.patch_size, self.patch_size).unfold(3, self.patch_size, self.patch_size)
+        
+        # Shape: (batch, channels, n_patches_h, n_patches_w, patch_h, patch_w) -> (batch, channels, n_patches_total, pixels_per_patch)
+        # Example: (64, 2, 3, 3, 16, 16) -> (64, 2, 9, 256)
+        #          where 9 = 3x3 patches, and 256 = 16x16 pixels per patch
         patches = patches.contiguous().view(batch_size, self.in_channels, -1, self.patch_size * self.patch_size)
+        
+        # Shape: (batch, channels, n_patches_total, pixels_per_patch) -> (batch, n_patches_total, channels * pixels_per_patch)
+        # Example: (64, 2, 9, 256) -> permute(0,2,1,3) -> (64, 9, 2, 256) -> view -> (64, 9, 512)
+        #          This merges all channels of each patch into a single feature vector
         patches = patches.permute(0, 2, 1, 3).contiguous().view(batch_size, -1, self.patch_size * self.patch_size * self.in_channels)
 
         # patch embedding
@@ -266,10 +285,13 @@ class TSP_Decoder(nn.Module):
         embedding_dim = self.model_params['embedding_dim']
         head_num = self.model_params['head_num']
         qkv_dim = self.model_params['qkv_dim']
+        num_objectives = self.model_params['num_objectives']
         
-        hyper_input_dim = 2
+        # Hypernetwork input dimension = num_objectives (preference vector size)
+        hyper_input_dim = num_objectives
         hyper_hidden_embd_dim = self.model_params['hyper_hidden_dim']
-        self.embd_dim = 2
+        # For single objective, we still use a small embedding dimension
+        self.embd_dim = max(2, num_objectives)  # At least 2 for numerical stability
         self.hyper_output_dim = 5 * self.embd_dim
         
         self.hyper_fc1 = nn.Linear(hyper_input_dim, hyper_hidden_embd_dim, bias=True)

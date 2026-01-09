@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 import torch
 
-# from MOTSProblemDef import get_random_problems, augment_xy_data_by_64_fold_2obj
 from MOTSP.MOTSProblemDef import get_random_problems, augment_xy_data_by_64_fold_2obj
 
 
@@ -30,6 +29,7 @@ class TSPEnv:
         self.env_params = env_params
         self.problem_size = env_params['problem_size']
         self.pomo_size = env_params['pomo_size']
+        self.num_objectives = env_params['num_objectives']
 
         # Const @Load_Problem
         ####################################
@@ -38,7 +38,7 @@ class TSPEnv:
         self.POMO_IDX = None
         # IDX.shape: (batch, pomo)
         self.problems = None
-        # shape: (batch, node, node)
+        # shape: (batch, node, 2*num_objectives)
 
         # Dynamic
         ####################################
@@ -59,30 +59,60 @@ class TSPEnv:
         if problems is not None:
             self.problems = problems
         else:
-            self.problems = get_random_problems(batch_size, self.problem_size)
-        # problems.shape: (batch, problem, 2)
+            self.problems = get_random_problems(batch_size, self.problem_size, self.num_objectives)
+        # problems.shape: (batch, problem, 2*num_objectives)
         if aug_factor > 1:
-            if aug_factor == 64:
+            if aug_factor == 8:
+                # Use 8-fold augmentation for any number of objectives
+                self.batch_size = self.batch_size * 8
+                self.problems = augment_xy_data_by_8_fold(self.problems, self.num_objectives)
+            elif aug_factor == 64 and self.num_objectives == 2:
+                # 64-fold only for 2 objectives (legacy)
                 self.batch_size = self.batch_size * 64
                 self.problems = augment_xy_data_by_64_fold_2obj(self.problems)
             else:
-                raise NotImplementedError
+                raise NotImplementedError(f"aug_factor={aug_factor} not supported for {self.num_objectives} objectives")
 
+        # TODO: In the future, this image construction logic will be replaced with other methods
+        # that don't rely on coordinate-based visualization. The current implementation is temporary.
         self.xy_img = torch.ones((self.batch_size, self.channels, self.img_size, self.img_size))
-        for i in range(self.channels):
-            xy_img = self.problems[:, :, 2 * i: 2 * i + 2] * self.img_size
-            if batch_size == 1:  # special out of index for KroAB
-                xy_img = self.problems[:, :, 2 * i: 2 * i + 2] * (self.img_size - 1)
-            xy_img = xy_img.int()
-            block_indices = xy_img // self.patch_size
-            self.block_indices = block_indices[:, :, 0] * self.patches + block_indices[:, :, 1]
-            xy_img = xy_img[:, :, None, :] + self.offsets[None, None, :, :].expand(self.batch_size, 1,
-                                                                                              self.offsets.shape[0],
-                                                                                              self.offsets.shape[1])
-            xy_img_idx = xy_img.reshape(-1, 2)
-            BATCH_IDX = torch.arange(self.batch_size)[:, None, None].expand(self.batch_size, self.problem_size,
-                                                                            self.offsets.shape[0]).reshape(-1)
-            self.xy_img[BATCH_IDX, i, xy_img_idx[:, 0], xy_img_idx[:, 1]] = 0
+        
+        # Special case: Single objective with multiple channels
+        # All channels use the same coordinates to build identical images
+        if self.num_objectives == 1 and self.channels > 1:
+            # problems.shape: (batch, problem_size, 2) - only [x, y]
+            # Build the same image for all channels
+            for i in range(self.channels):
+                xy_img = self.problems[:, :, 0:2] * self.img_size  # Use the same [x, y] for all channels
+                if batch_size == 1:  # special out of index for KroAB
+                    xy_img = self.problems[:, :, 0:2] * (self.img_size - 1)
+                xy_img = xy_img.int()
+                block_indices = xy_img // self.patch_size
+                self.block_indices = block_indices[:, :, 0] * self.patches + block_indices[:, :, 1]
+                xy_img = xy_img[:, :, None, :] + self.offsets[None, None, :, :].expand(self.batch_size, 1,
+                                                                                                  self.offsets.shape[0],
+                                                                                                  self.offsets.shape[1])
+                xy_img_idx = xy_img.reshape(-1, 2)
+                BATCH_IDX = torch.arange(self.batch_size)[:, None, None].expand(self.batch_size, self.problem_size,
+                                                                                self.offsets.shape[0]).reshape(-1)
+                self.xy_img[BATCH_IDX, i, xy_img_idx[:, 0], xy_img_idx[:, 1]] = 0
+        else:
+            # General case: Each channel uses its corresponding objective's coordinates
+            # For num_objectives==1 with channels==1, this also works correctly
+            for i in range(self.channels):
+                xy_img = self.problems[:, :, 2 * i: 2 * i + 2] * self.img_size
+                if batch_size == 1:  # special out of index for KroAB
+                    xy_img = self.problems[:, :, 2 * i: 2 * i + 2] * (self.img_size - 1)
+                xy_img = xy_img.int()
+                block_indices = xy_img // self.patch_size
+                self.block_indices = block_indices[:, :, 0] * self.patches + block_indices[:, :, 1]
+                xy_img = xy_img[:, :, None, :] + self.offsets[None, None, :, :].expand(self.batch_size, 1,
+                                                                                                  self.offsets.shape[0],
+                                                                                                  self.offsets.shape[1])
+                xy_img_idx = xy_img.reshape(-1, 2)
+                BATCH_IDX = torch.arange(self.batch_size)[:, None, None].expand(self.batch_size, self.problem_size,
+                                                                                self.offsets.shape[0]).reshape(-1)
+                self.xy_img[BATCH_IDX, i, xy_img_idx[:, 0], xy_img_idx[:, 1]] = 0
 
         self.BATCH_IDX = torch.arange(self.batch_size)[:, None].expand(self.batch_size, self.pomo_size)
         self.POMO_IDX = torch.arange(self.pomo_size)[None, :].expand(self.batch_size, self.pomo_size)
@@ -133,23 +163,44 @@ class TSPEnv:
         return self.step_state, reward, done
 
     def _get_travel_distance(self):
-       
-        gathering_index = self.selected_node_list.unsqueeze(3).expand(self.batch_size, -1, self.problem_size, 4)
-        # shape: (batch, pomo, problem, 4)
-        seq_expanded = self.problems[:, None, :, :].expand(self.batch_size, self.pomo_size, self.problem_size, 4)
+        """
+        Calculate travel distance for each objective.
+        
+        Returns:
+            travel_distances_vec: (batch, pomo, num_objectives)
+        """
+        coord_dim = 2 * self.num_objectives
+        gathering_index = self.selected_node_list.unsqueeze(3).expand(self.batch_size, -1, self.problem_size, coord_dim)
+        # shape: (batch, pomo, problem, 2*num_objectives)
+        seq_expanded = self.problems[:, None, :, :].expand(self.batch_size, self.pomo_size, self.problem_size, coord_dim)
 
         ordered_seq = seq_expanded.gather(dim=2, index=gathering_index)
-        # shape: (batch, pomo, problem, 2)
+        # shape: (batch, pomo, problem, 2*num_objectives)
         rolled_seq = ordered_seq.roll(dims=2, shifts=-1)
         
-        segment_lengths_obj1 = ((ordered_seq[:, :, :, :2]-rolled_seq[:, :, :, :2])**2).sum(3).sqrt()
-        segment_lengths_obj2 = ((ordered_seq[:, :, :, 2:]-rolled_seq[:, :, :, 2:])**2).sum(3).sqrt()
-
-        travel_distances_obj1 = segment_lengths_obj1.sum(2)
-        travel_distances_obj2 = segment_lengths_obj2.sum(2)
-    
-        travel_distances_vec = torch.stack([travel_distances_obj1,travel_distances_obj2],axis = 2)
+        # Calculate distance for each objective separately
+        travel_distances_list = []
+        for obj_idx in range(self.num_objectives):
+            # Extract coordinates for this objective: [x_i, y_i]
+            start_idx = 2 * obj_idx
+            end_idx = 2 * obj_idx + 2
+            
+            obj_coords = ordered_seq[:, :, :, start_idx:end_idx]
+            obj_coords_next = rolled_seq[:, :, :, start_idx:end_idx]
+            
+            # Euclidean distance: sqrt((x_i - x_j)^2 + (y_i - y_j)^2)
+            segment_lengths = ((obj_coords - obj_coords_next)**2).sum(3).sqrt()
+            # shape: (batch, pomo, problem)
+            
+            # Sum over all segments to get total distance
+            travel_distance = segment_lengths.sum(2)
+            # shape: (batch, pomo)
+            
+            travel_distances_list.append(travel_distance)
         
-        # shape: (batch, pomo)
+        # Stack all objectives
+        travel_distances_vec = torch.stack(travel_distances_list, dim=2)
+        # shape: (batch, pomo, num_objectives)
+        
         return travel_distances_vec
 

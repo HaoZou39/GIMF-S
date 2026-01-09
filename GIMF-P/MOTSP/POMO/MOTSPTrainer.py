@@ -68,11 +68,11 @@ class TSPTrainer:
         for epoch in range(self.start_epoch, self.trainer_params['epochs']+1):
             self.logger.info('=================================================================')
 
-            # LR Decay
-            self.scheduler.step()
-
             # Train
             train_score_obj1, train_score_obj2, train_loss = self._train_one_epoch(epoch)
+            
+            # LR Decay (after optimizer.step())
+            self.scheduler.step()
             self.result_log.append('train_score_obj1', epoch, train_score_obj1)
             self.result_log.append('train_score_obj2', epoch, train_score_obj2)
             self.result_log.append('train_loss', epoch, train_loss)
@@ -119,6 +119,7 @@ class TSPTrainer:
             batch_size = min(self.trainer_params['train_batch_size'], remaining)
 
             avg_score_obj1, avg_score_obj2, avg_loss = self._train_one_batch(batch_size)
+            # TODO: Update this score and loss
             score_AM_obj1.update(avg_score_obj1, batch_size)
             score_AM_obj2.update(avg_score_obj2, batch_size)
             loss_AM.update(avg_loss, batch_size)
@@ -147,9 +148,17 @@ class TSPTrainer:
         self.model.train()
         self.env.load_problems(batch_size)
 
-        alpha = 1
-        pref = np.random.dirichlet((alpha, alpha), None)
-        pref = torch.tensor(pref).float()
+        # Generate preference vector
+        num_objectives = self.env.num_objectives
+        if num_objectives == 1:
+            # For single objective, use [1.0]
+            pref = torch.tensor([1.0]).float()
+        else:
+            # For multi-objective, sample from Dirichlet distribution
+            alpha = 1
+            alpha_vec = tuple([alpha] * num_objectives)
+            pref = np.random.dirichlet(alpha_vec, None)
+            pref = torch.tensor(pref).float()
 
 
         reset_state, _, _ = self.env.reset()
@@ -200,11 +209,18 @@ class TSPTrainer:
         ###############################################
         _ , max_idx = tch_reward.max(dim=1)
         max_idx = max_idx.reshape(max_idx.shape[0],1)
-        max_reward_obj1 = reward[:,:,0].gather(1, max_idx)
-        max_reward_obj2 = reward[:,:,1].gather(1, max_idx)
         
-        score_mean_obj1 = - max_reward_obj1.float().mean()
-        score_mean_obj2 = - max_reward_obj2.float().mean()
+        # Extract best reward for each objective
+        num_objectives = self.env.num_objectives
+        score_means = []
+        for obj_idx in range(num_objectives):
+            max_reward_obj = reward[:,:,obj_idx].gather(1, max_idx)
+            score_mean_obj = - max_reward_obj.float().mean()
+            score_means.append(score_mean_obj)
+        
+        # For backward compatibility, keep obj1 and obj2 names
+        score_mean_obj1 = score_means[0]
+        score_mean_obj2 = score_means[1] if num_objectives > 1 else score_means[0]
     
         #Step & Return
         ################################################

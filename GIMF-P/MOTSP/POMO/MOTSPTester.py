@@ -70,8 +70,9 @@ class TSPTester:
     
         aug_score_AM = {}
         
-        # 2 objs
-        for i in range(2):
+        # Support both single and multi-objective
+        num_objectives = self.env.num_objectives
+        for i in range(num_objectives):
             aug_score_AM[i] = AverageMeter()
             
         test_num_episode = self.tester_params['test_episodes']
@@ -82,8 +83,8 @@ class TSPTester:
 
             aug_score = self._test_one_batch(shared_problem, pref, batch_size, episode)
             
-            # 2 objs
-            for i in range(2):
+            # Update scores for all objectives
+            for i in range(num_objectives):
                 aug_score_AM[i].update(aug_score[i], batch_size)
 
             episode += batch_size
@@ -92,10 +93,14 @@ class TSPTester:
             ############################
             # Logs
             ############################
-
-            self.logger.info("AUG_OBJ_1 SCORE: {:.4f}, AUG_OBJ_2 SCORE: {:.4f} ".format(aug_score_AM[0].avg.mean(), aug_score_AM[1].avg.mean()))
+            if num_objectives == 1:
+                self.logger.info("AUG_OBJ_1 SCORE: {:.4f}".format(aug_score_AM[0].avg.mean()))
+            else:
+                self.logger.info("AUG_OBJ_1 SCORE: {:.4f}, AUG_OBJ_2 SCORE: {:.4f} ".format(aug_score_AM[0].avg.mean(), aug_score_AM[1].avg.mean()))
             break
-        return [aug_score_AM[0].avg.cpu(), aug_score_AM[1].avg.cpu()]
+        
+        # Return scores for all objectives
+        return [aug_score_AM[i].avg.cpu() for i in range(num_objectives)]
                 
     def _test_one_batch(self, shared_probelm, pref, batch_size, episode):
 
@@ -145,12 +150,13 @@ class TSPTester:
         tch_reward_aug = rearrange(tch_reward, 'c b h -> b (c h)') 
         _ , max_idx_aug = tch_reward_aug.max(dim=1)
         max_idx_aug = max_idx_aug.reshape(max_idx_aug.shape[0],1)
-        max_reward_obj1 = rearrange(reward[:,:,0].reshape(aug_factor, batch_size, self.env.pomo_size), 'c b h -> b (c h)').gather(1, max_idx_aug)
-        max_reward_obj2 = rearrange(reward[:,:,1].reshape(aug_factor, batch_size, self.env.pomo_size), 'c b h -> b (c h)').gather(1, max_idx_aug)
-     
+        
+        # Extract scores for all objectives
+        num_objectives = self.env.num_objectives
         aug_score = []
-        aug_score.append(-max_reward_obj1.float())
-        aug_score.append(-max_reward_obj2.float())
+        for obj_idx in range(num_objectives):
+            max_reward_obj = rearrange(reward[:,:,obj_idx].reshape(aug_factor, batch_size, self.env.pomo_size), 'c b h -> b (c h)').gather(1, max_idx_aug)
+            aug_score.append(-max_reward_obj.float())
         
         return aug_score
 

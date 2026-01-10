@@ -16,3 +16,4 @@ result/
 # logs
 *.log
 profiler_logs/
+/.history

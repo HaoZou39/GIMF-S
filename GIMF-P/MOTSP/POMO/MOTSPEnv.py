@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 import torch
+import os
 
 from MOTSP.MOTSProblemDef import get_random_problems, augment_xy_data_by_64_fold_2obj
-
+from BasemapManager import get_basemap_manager
 
 @dataclass
 class Reset_State:
@@ -54,12 +55,31 @@ class TSPEnv:
         self.patches = self.img_size // self.patch_size
         self.offsets = torch.tensor([[0, 0]])
 
+        # Basemap configuration
+        ####################################
+        self.use_basemap = env_params.get('use_basemap', False)
+        self.basemap_dir = env_params.get('basemap_dir', 'data')
+        self.basemap_pattern = env_params.get('basemap_pattern', 'basemap_{id}.tif')
+        self.default_basemap_id = env_params.get('default_basemap_id', '0')
+        self.basemap_resized = None  # Resized basemap tensor
+        self.basemap_manager = get_basemap_manager() if self.use_basemap else None
+
     def load_problems(self, batch_size, aug_factor=1, problems=None):
+        """
+        Load problems with basemap support
+
+        Args:
+            batch_size: Number of problem instances
+            aug_factor: Data augmentation factor
+            problems: Pre-generated problems (optional)
+        """
         self.batch_size = batch_size
+
         if problems is not None:
             self.problems = problems
         else:
             self.problems = get_random_problems(batch_size, self.problem_size, self.num_objectives)
+
         # problems.shape: (batch, problem, 2*num_objectives)
         if aug_factor > 1:
             if aug_factor == 8:
@@ -73,29 +93,47 @@ class TSPEnv:
             else:
                 raise NotImplementedError(f"aug_factor={aug_factor} not supported for {self.num_objectives} objectives")
 
-        # TODO: In the future, this image construction logic will be replaced with other methods
-        # that don't rely on coordinate-based visualization. The current implementation is temporary.
+        # Load basemap
+        if self.use_basemap and self.basemap_manager is not None:
+            if self.basemap_resized is None or self.basemap_resized.shape[0] != self.img_size:
+                default_basemap_path = os.path.join(
+                    self.basemap_dir,
+                    self.basemap_pattern.format(id=self.default_basemap_id)
+                )
+                self.basemap_resized = self.basemap_manager.get_basemap(
+                    basemap_path=default_basemap_path,
+                    resolution=self.img_size,
+                    map_id=self.default_basemap_id,
+                    downscale_method='AREA'
+                )
+
+        # Image construction
         self.xy_img = torch.ones((self.batch_size, self.channels, self.img_size, self.img_size))
         
-        # Special case: Single objective with multiple channels
-        # All channels use the same coordinates to build identical images
+        # Single objective with multiple channels: Channel 0 = point image, Channel 1+ = basemap
         if self.num_objectives == 1 and self.channels > 1:
-            # problems.shape: (batch, problem_size, 2) - only [x, y]
-            # Build the same image for all channels
-            for i in range(self.channels):
-                xy_img = self.problems[:, :, 0:2] * self.img_size  # Use the same [x, y] for all channels
-                if batch_size == 1:  # special out of index for KroAB
-                    xy_img = self.problems[:, :, 0:2] * (self.img_size - 1)
-                xy_img = xy_img.int()
-                block_indices = xy_img // self.patch_size
-                self.block_indices = block_indices[:, :, 0] * self.patches + block_indices[:, :, 1]
-                xy_img = xy_img[:, :, None, :] + self.offsets[None, None, :, :].expand(self.batch_size, 1,
-                                                                                                  self.offsets.shape[0],
-                                                                                                  self.offsets.shape[1])
-                xy_img_idx = xy_img.reshape(-1, 2)
-                BATCH_IDX = torch.arange(self.batch_size)[:, None, None].expand(self.batch_size, self.problem_size,
-                                                                                self.offsets.shape[0]).reshape(-1)
-                self.xy_img[BATCH_IDX, i, xy_img_idx[:, 0], xy_img_idx[:, 1]] = 0
+            # Channel 0: Point image (white bg + black nodes)
+            xy_img = self.problems[:, :, 0:2] * self.img_size
+            if batch_size == 1:  # special out of index for KroAB
+                xy_img = self.problems[:, :, 0:2] * (self.img_size - 1)
+            xy_img = xy_img.int()
+            block_indices = xy_img // self.patch_size
+            self.block_indices = block_indices[:, :, 0] * self.patches + block_indices[:, :, 1]
+            xy_img = xy_img[:, :, None, :] + self.offsets[None, None, :, :].expand(self.batch_size, 1,
+                                                                                              self.offsets.shape[0],
+                                                                                              self.offsets.shape[1])
+            xy_img_idx = xy_img.reshape(-1, 2)
+            BATCH_IDX = torch.arange(self.batch_size)[:, None, None].expand(self.batch_size, self.problem_size,
+                                                                            self.offsets.shape[0]).reshape(-1)
+            self.xy_img[BATCH_IDX, 0, xy_img_idx[:, 0], xy_img_idx[:, 1]] = 0
+            
+            # Channel 1+: Basemap (roadnet)
+            if self.use_basemap and self.basemap_resized is not None:
+                for i in range(1, self.channels):
+                    self.xy_img[:, i, :, :] = self.basemap_resized.unsqueeze(0).expand(self.batch_size, -1, -1)
+            else:
+                raise ValueError(f"Single objective with in_channels={self.channels} requires basemap. "
+                                 f"Set use_basemap=True or reduce in_channels to 1.")
         else:
             # General case: Each channel uses its corresponding objective's coordinates
             # For num_objectives==1 with channels==1, this also works correctly

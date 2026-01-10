@@ -18,6 +18,9 @@ sys.path.insert(0, "../..")  # for utils
 import logging
 from utils.utils import create_logger, copy_all_src
 import math
+import torch
+import numpy as np
+import random
 from MOTSPTrainer import TSPTrainer as Trainer
 
 ##########################################################################################
@@ -25,7 +28,11 @@ from MOTSPTrainer import TSPTrainer as Trainer
 env_params = {
     'problem_size': 20,
     'pomo_size': 20,
-    'num_objectives': 1,  # Single objective!
+    'num_objectives': 1,
+    'use_basemap': True,  # Enable basemap as additional channel(s)
+    'basemap_dir': 'data',
+    'basemap_pattern': 'basemap_{id}.tif',
+    'default_basemap_id': '0',  # Default basemap to use
 }
 
 model_params = {
@@ -39,9 +46,9 @@ model_params = {
     'eval_type': 'argmax',
     'hyper_hidden_dim': 256,
     'num_objectives': 1,  # Single objective!
-    'in_channels': 2,  # Can be >= 1 for single objective (all channels will use same coordinates)
+    'in_channels': 2,  # 2 channels: points + basemap
     'patch_size': 16,
-    'pixel_density': 10,
+    'pixel_density': 56,  # 56 for 256x256, 10 for 48x48
     'fusion_layer_num': 3,
     'bn_num': 10,
     'bn_img_num': 10,
@@ -62,16 +69,15 @@ num_objectives = model_params['num_objectives']
 in_channels = model_params['in_channels']
 
 if num_objectives == 1:
-    # Single objective: Allow in_channels >= 1
-    # If in_channels > 1, all channels will use the same coordinates (temporary solution)
-    # TODO: Future implementation will support different image construction methods
-    assert in_channels >= 1, "in_channels must be at least 1"
-    if in_channels != 1:
-        print(f"WARNING: num_objectives=1 but in_channels={in_channels}. All channels will use identical images.")
+    # Single objective: in_channels=1 (points only) or in_channels>1 (with basemap)
+    if in_channels > 1:
+        assert env_params.get('use_basemap', False), \
+            f"Single objective with in_channels={in_channels} requires basemap (set use_basemap=True)"
+        print(f"Using {in_channels}-channel input: Channel 0=Points, Channel 1+=Basemap")
 else:
-    # Multi-objective: Require in_channels == num_objectives
+    # Multi-objective: in_channels must equal num_objectives
     assert in_channels == num_objectives, \
-        f"For multi-objective (num_objectives={num_objectives}), in_channels must equal num_objectives"
+        f"Multi-objective (num_objectives={num_objectives}) requires in_channels={num_objectives}"
 
 optimizer_params = {
     'optimizer': {
@@ -91,6 +97,7 @@ trainer_params = {
     'epochs': 200,
     'train_episodes': 100 * 1000,
     'train_batch_size': 64,
+    'random_seed': 1234,  # Fixed random seed for reproducibility
     'logging': {
         'model_save_interval': 5,
         'img_save_interval': 10,
@@ -123,6 +130,9 @@ def main():
     if DEBUG_MODE:
         _set_debug_mode()
 
+    # Set random seed for reproducibility
+    _set_random_seed(trainer_params['random_seed'])
+
     create_logger(**logger_params)
     _print_config()
 
@@ -135,6 +145,17 @@ def main():
 
     trainer.run()
 
+def _set_random_seed(seed):
+    """Set random seed for reproducibility"""
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    # For deterministic behavior (may affect performance)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    print(f"Random seed set to {seed} for reproducibility")
 
 def _set_debug_mode():
     global trainer_params

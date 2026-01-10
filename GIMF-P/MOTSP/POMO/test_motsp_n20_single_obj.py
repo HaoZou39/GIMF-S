@@ -45,9 +45,9 @@ model_params = {
     'eval_type': 'argmax',
     'hyper_hidden_dim': 256,
     'num_objectives': 1,  # Single objective
-    'in_channels': 1,  # Can be >= 1 for single objective
+    'in_channels': 2,  # Can be >= 1 for single objective
     'patch_size': 16,
-    'pixel_density': 10,
+    'pixel_density': 56,
     'fusion_layer_num': 3,
     'bn_num': 10,
     'bn_img_num': 10,
@@ -72,7 +72,7 @@ tester_params = {
     'model_load': {
         'path': './result/train__tsp_n20_single_obj',
         'info': "Single-Objective TSP20",
-        'epoch': 200,
+        'epoch': 50,
     },
     'test_episodes': 200,
     'test_batch_size': 200,

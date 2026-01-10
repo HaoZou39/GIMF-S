@@ -9,7 +9,7 @@
 ```python
 import numpy as np
 
-data = np.load('./data/Gen_dataset/distance_dataset.npz', allow_pickle=True)
+data = np.load('./data/Gen_dataset/distance_dataset_30.318899_120.055447_5000.0.npz', allow_pickle=True)
 print(data.files)  # 查看 keys
 
 # 请使用以下匹配后节点坐标和路网距离矩阵

@@ -1,0 +1,12 @@
+# Core dependencies
+torch>=1.8.0
+numpy>=1.19.0
+einops>=0.6.0
+tqdm>=4.60.0
+matplotlib>=3.3.0
+
+# Optional dependencies for optimization solvers
+# Uncomment if you need these:
+# gurobipy>=9.5.0  # For Gurobi solver
+# ortools>=9.0  # For OR-Tools solver
+# numba>=0.56.0  # For JIT acceleration

@@ -1,8 +1,16 @@
 ##########################################################################################
 # Machine Environment Config
-DEBUG_MODE = False
+import argparse
+
+# Parse command line arguments
+parser = argparse.ArgumentParser(description='Train MOTSP with single objective')
+parser.add_argument('--gpu', type=int, default=0, help='GPU device number to use (default: 0)')
+parser.add_argument('--debug', action='store_true', help='Enable debug mode')
+args = parser.parse_args()
+
+DEBUG_MODE = args.debug
 USE_CUDA = not DEBUG_MODE
-CUDA_DEVICE_NUM = 0
+CUDA_DEVICE_NUM = args.gpu
 
 ##########################################################################################
 # Path Config
@@ -25,14 +33,49 @@ from MOTSPTrainer import TSPTrainer as Trainer
 
 ##########################################################################################
 # parameters - SINGLE OBJECTIVE VERSION
+
+# Multi-dataset configuration
+# Each dataset entry contains: name, npz_path, basemap_path
+# NOTE: For benchmarking, temporarily using only ONE dataset to measure baseline speed
+DATASETS = [
+    {
+        'name': '杭州',
+        'npz_path': '../../../MMDataset/杭州/distance_dataset_30.318899_120.055447_5000.0.npz',
+        'basemap_path': '../../../MMDataset/杭州/mask_prob_30.318899_120.055447_5000.0_z16.float32.tif',
+    },
+    {
+        'name': '上海',
+        'npz_path': '../../../MMDataset/上海/distance_dataset_31.240186_121.496062_5000.0.npz',
+        'basemap_path': '../../../MMDataset/上海/mask_prob_31.240186_121.496062_5000.0_z16.float32.tif',
+    },
+    {
+        'name': '柏林',
+        'npz_path': '../../../MMDataset/柏林/distance_dataset_52.516298_13.377914_5000.0.npz',
+        'basemap_path': '../../../MMDataset/柏林/mask_prob_52.516298_13.377914_5000.0_z16.float32.tif',
+    },
+    {
+        'name': '鹤岗',
+        'npz_path': '../../../MMDataset/鹤岗/distance_dataset_47.332394_130.278898_5000.0.npz',
+        'basemap_path': '../../../MMDataset/鹤岗/mask_prob_47.332394_130.278898_5000.0_z16.float32.tif',
+    },
+]
+
 env_params = {
     'problem_size': 20,
     'pomo_size': 20,
     'num_objectives': 1,
     'use_basemap': True,  # Enable basemap as additional channel(s)
+    
+    # Multi-dataset configuration
+    'use_custom_dataset': True,  # Set to False to use random generated problems (BENCHMARK TEST)
+    'datasets': DATASETS,  # List of dataset configurations
+    'use_distance_matrix': True,  # Use pre-computed road network distance matrix
+    'dataset_switch_interval': 10,  # Batches before switching to next dataset (reduces basemap overhead)
+    
+    # Default basemap for random generation mode (when use_custom_dataset=False)
     'basemap_dir': 'data',
     'basemap_pattern': 'basemap_{id}.tif',
-    'default_basemap_id': '0',  # Default basemap to use
+    'default_basemap_id': '0',
 }
 
 model_params = {
@@ -94,10 +137,15 @@ trainer_params = {
     'use_cuda': USE_CUDA,
     'cuda_device_num': CUDA_DEVICE_NUM,
     'dec_method': 'WS',  # For single objective, WS is just identity
-    'epochs': 200,
+    'epochs': 50,
     'train_episodes': 100 * 1000,
     'train_batch_size': 64,
     'random_seed': 1234,  # Fixed random seed for reproducibility
+    
+    # Optimality gap validation settings
+    'validation_interval': 10,  # Validate every N epochs (set to 0 to disable)
+    'validation_batch_size': 64,  # Batch size for validation
+    
     'logging': {
         'model_save_interval': 5,
         'img_save_interval': 10,
@@ -117,9 +165,47 @@ trainer_params = {
     }
 }
 
+# Generate logger desc based on dataset and model configuration
+def _get_dataset_names():
+    """Extract dataset names for logging"""
+    if env_params.get('use_custom_dataset', False):
+        datasets = env_params.get('datasets', [])
+        if datasets:
+            names = [d['name'] for d in datasets]
+            return '_'.join(names)
+        return 'custom'
+    return 'random'
+
+def _get_model_config_suffix():
+    """Generate suffix based on model configuration for avoiding overwrites"""
+    suffix_parts = []
+    
+    # Basemap configuration & point representation
+    # Note: Point representation is automatically selected based on use_basemap:
+    #   - use_basemap=True:  black bg + white points + 3x3 dilation (blackW3x3)
+    #   - use_basemap=False: white bg + black points + single pixel (whiteB1px)
+    if env_params.get('use_basemap', False):
+        suffix_parts.append(f"ch{model_params['in_channels']}")  # e.g., ch2
+        suffix_parts.append("blackW3x3")  # black background, white points, 3x3 dilation
+    else:
+        suffix_parts.append("no_basemap")
+        suffix_parts.append("whiteB1px")  # white background, black points, 1 pixel
+    
+    # Distance matrix configuration
+    if env_params.get('use_distance_matrix', False):
+        suffix_parts.append("roadnet")
+    else:
+        suffix_parts.append("euclidean")
+    
+    return '_'.join(suffix_parts)
+
+dataset_names = _get_dataset_names()
+model_config = _get_model_config_suffix()
+logger_desc = f'train__tsp_n20_single_obj_{dataset_names}_{model_config}'
+
 logger_params = {
     'log_file': {
-        'desc': 'train__tsp_n20_single_obj',
+        'desc': logger_desc,
         'filename': 'run_log'
     }
 }

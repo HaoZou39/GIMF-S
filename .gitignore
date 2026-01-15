@@ -17,3 +17,12 @@ result/
 *.log
 profiler_logs/
 /.history
+
+*.png
+*.tif
+*.npz
+.cursor/rules/env-rule.mdc
+
+# Cache directories
+**/basemap_cache/
+**/*_cache/

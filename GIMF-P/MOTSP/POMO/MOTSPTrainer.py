@@ -274,6 +274,16 @@ class TSPTrainer:
                 self.tb_writer.add_scalar('Train/Advantage_Std_Avg', epoch_metrics['advantage_std_avg'], epoch)
                 self.tb_writer.add_scalar('Train/Advantage_Mean_Avg', epoch_metrics['advantage_mean_avg'], epoch)
             
+            # Edge-aware auxiliary losses (epoch-level)
+            if 'edge_sup_loss_avg' in epoch_metrics:
+                self.tb_writer.add_scalar('Train/Edge_Supervised_Loss', epoch_metrics['edge_sup_loss_avg'], epoch)
+            if 'edge_rank_loss_avg' in epoch_metrics:
+                self.tb_writer.add_scalar('Train/Edge_Ranking_Loss', epoch_metrics['edge_rank_loss_avg'], epoch)
+            if epoch_metrics.get('in_pretrain', False):
+                self.tb_writer.add_scalar('Train/In_Pretrain', 1.0, epoch)
+            else:
+                self.tb_writer.add_scalar('Train/In_Pretrain', 0.0, epoch)
+            
             ############################
             # Logs & Checkpoint
             ############################
@@ -340,6 +350,11 @@ class TSPTrainer:
         grad_norm_max = 0.0
         advantage_std_AM = AverageMeter()
         advantage_mean_AM = AverageMeter()
+        
+        # Edge-aware auxiliary loss metrics
+        edge_sup_loss_AM = AverageMeter()
+        edge_rank_loss_AM = AverageMeter()
+        in_pretrain_count = 0
 
         train_num_episode = self.trainer_params['train_episodes']
         episode = 0
@@ -363,6 +378,14 @@ class TSPTrainer:
             if 'advantage_std' in batch_metrics:
                 advantage_std_AM.update(batch_metrics['advantage_std'], batch_size)
                 advantage_mean_AM.update(batch_metrics['advantage_mean'], batch_size)
+            
+            # Update edge-aware auxiliary loss metrics
+            if 'edge_sup_loss' in batch_metrics:
+                edge_sup_loss_AM.update(batch_metrics['edge_sup_loss'], batch_size)
+            if 'edge_rank_loss' in batch_metrics:
+                edge_rank_loss_AM.update(batch_metrics['edge_rank_loss'], batch_size)
+            if batch_metrics.get('in_pretrain', 0) > 0:
+                in_pretrain_count += 1
 
             episode += batch_size
             batch_cnt += 1
@@ -374,6 +397,11 @@ class TSPTrainer:
                 self.tb_writer.add_scalar('Batch/Score_Obj1', avg_score_obj1, self.global_step)
                 if 'grad_norm' in batch_metrics:
                     self.tb_writer.add_scalar('Batch/Gradient_Norm', batch_metrics['grad_norm'], self.global_step)
+                # Edge-aware auxiliary losses
+                if 'edge_sup_loss' in batch_metrics:
+                    self.tb_writer.add_scalar('Batch/Edge_Supervised_Loss', batch_metrics['edge_sup_loss'], self.global_step)
+                if 'edge_rank_loss' in batch_metrics:
+                    self.tb_writer.add_scalar('Batch/Edge_Ranking_Loss', batch_metrics['edge_rank_loss'], self.global_step)
 
             # Log First 10 Batch, only at the first epoch
             if epoch == self.start_epoch:
@@ -394,6 +422,10 @@ class TSPTrainer:
             'grad_norm_max': grad_norm_max,
             'advantage_std_avg': advantage_std_AM.avg if advantage_std_AM.count > 0 else 0.0,
             'advantage_mean_avg': advantage_mean_AM.avg if advantage_mean_AM.count > 0 else 0.0,
+            # Edge-aware auxiliary losses
+            'edge_sup_loss_avg': edge_sup_loss_AM.avg if edge_sup_loss_AM.count > 0 else 0.0,
+            'edge_rank_loss_avg': edge_rank_loss_AM.avg if edge_rank_loss_AM.count > 0 else 0.0,
+            'in_pretrain': in_pretrain_count > 0,
         }
 
         return score_AM_obj1.avg, score_AM_obj2.avg, loss_AM.avg, epoch_metrics

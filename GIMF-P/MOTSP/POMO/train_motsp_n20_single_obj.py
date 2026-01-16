@@ -24,7 +24,7 @@ sys.path.insert(0, "../..")  # for utils
 ##########################################################################################
 # import
 import logging
-from utils.utils import create_logger, copy_all_src
+from utils.utils import create_logger, copy_all_src, get_result_folder
 import math
 import torch
 import numpy as np
@@ -148,7 +148,7 @@ model_params = {
 
     # Edge-aware auxiliary module
     'use_edge_head': True,
-    'use_edge_bias': True,
+    'use_edge_bias': False,  # 禁用edge_bias，避免干扰RL决策
     'edge_head_hidden_dim': 256,
     'edge_head_use_euclid': True,
     'edge_bias_alpha': 1.0,
@@ -263,6 +263,38 @@ def _get_dataset_names():
         return 'custom'
     return 'random'
 
+def _get_auxiliary_training_suffix():
+    """Generate suffix based on auxiliary training tasks configuration"""
+    aux_parts = []
+    
+    # Edge-aware auxiliary training tasks
+    edge_pretrain = trainer_params.get('edge_pretrain', {})
+    edge_supervised = trainer_params.get('edge_supervised', {})
+    edge_ranking = trainer_params.get('edge_ranking', {})
+    
+    if edge_pretrain.get('enable', False):
+        aux_parts.append(f"pretrain{edge_pretrain.get('epochs', 0)}ep")
+    
+    if edge_supervised.get('enable', False):
+        weight = edge_supervised.get('weight', 1.0)
+        aux_parts.append(f"sup{weight:.1f}")
+    
+    if edge_ranking.get('enable', False):
+        weight = edge_ranking.get('weight', 0.1)
+        aux_parts.append(f"rank{weight:.1f}")
+    
+    # Edge bias status (important for distinguishing experiments)
+    use_edge_bias = model_params.get('use_edge_bias', False)
+    if use_edge_bias:
+        aux_parts.append("bias_on")
+    else:
+        aux_parts.append("bias_off")
+    
+    if aux_parts:
+        return 'aux_' + '_'.join(aux_parts)
+    else:
+        return 'no_aux'
+
 def _get_model_config_suffix():
     """Generate suffix based on model configuration for avoiding overwrites"""
     suffix_parts = []
@@ -283,8 +315,7 @@ def _get_model_config_suffix():
         dilation_str = point_dilation
         suffix_parts.append(f"{style_str}{dilation_str}")
     else:
-        suffix_parts.append("no_basemap")
-        suffix_parts.append("whiteB1px")  # white background, black points, 1 pixel
+        suffix_parts.extend(["no_basemap", "whiteB1px"])  # white background, black points, 1 pixel
     
     # Distance matrix configuration
     if env_params.get('use_distance_matrix', False):
@@ -296,7 +327,8 @@ def _get_model_config_suffix():
 
 dataset_names = _get_dataset_names()
 model_config = _get_model_config_suffix()
-logger_desc = f'train__tsp_n20_single_obj_{dataset_names}_{model_config}'
+auxiliary_config = _get_auxiliary_training_suffix()
+logger_desc = f'train__tsp_n20_single_obj_{dataset_names}_{model_config}_{auxiliary_config}'
 
 logger_params = {
     'log_file': {
@@ -349,7 +381,16 @@ def _print_config():
     logger = logging.getLogger('root')
     logger.info('DEBUG_MODE: {}'.format(DEBUG_MODE))
     logger.info('USE_CUDA: {}, CUDA_DEVICE_NUM: {}'.format(USE_CUDA, CUDA_DEVICE_NUM))
-    [logger.info(g_key + "{}".format(globals()[g_key])) for g_key in globals().keys() if g_key.endswith('params')]
+    [logger.info(f"{g_key}{globals()[g_key]}") for g_key in globals() if g_key.endswith('params')]
+    
+    # Print TensorBoard command for easy access
+    # result_folder is set by create_logger (called before this function)
+    result_folder = get_result_folder()
+    tensorboard_log_dir = f'{result_folder}/tensorboard'
+    logger.info('=' * 80)
+    logger.info('TensorBoard Command:')
+    logger.info(f'  tensorboard --logdir={tensorboard_log_dir}')
+    logger.info('=' * 80)
 
 ##########################################################################################
 

@@ -46,87 +46,87 @@ from MOTSPModel import TSPModel as Model
 ##########################################################################################
 
 DATASETS = [
-    # Training locations (12 locations used during training)
-    {
-        'name': 'loc_30.175448_120.065850',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.065850_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.06585_3000.0_z16.tif',
-    },
-    {
-        'name': 'loc_30.175448_120.128249',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.128249_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.128249_3000.0_z16.tif',
-    },
-    {
-        'name': 'loc_30.175448_120.190647',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.190647_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.190647_3000.0_z16.tif',
-    },
-    {
-        'name': 'loc_30.175448_120.253046',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.253046_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.253046_3000.0_z16.tif',
-    },
-    {
-        'name': 'loc_30.229377_120.065850',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.065850_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.06585_3000.0_z16.tif',
-    },
-    {
-        'name': 'loc_30.229377_120.128249',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.128249_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.128249_3000.0_z16.tif',
-    },
-    {
-        'name': 'loc_30.229377_120.190647',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.190647_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.190647_3000.0_z16.tif',
-    },
-    {
-        'name': 'loc_30.229377_120.253046',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.253046_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.253046_3000.0_z16.tif',
-    },
+    # Training locations (12 locations used during training) - folders 04-15
     {
         'name': 'loc_30.283276_120.065850',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.065850_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.06585_3000.0_z16.tif',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/04_30.283276_120.065850_3000.0/distance_dataset_train_30.283276_120.065850_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/04_30.283276_120.065850_3000.0/mask_prob_30.283276_120.065850_3000.0_z16.tif',
     },
     {
         'name': 'loc_30.283276_120.128249',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.128249_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.128249_3000.0_z16.tif',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/05_30.283276_120.128249_3000.0/distance_dataset_train_30.283276_120.128249_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/05_30.283276_120.128249_3000.0/mask_prob_30.283276_120.128249_3000.0_z16.tif',
     },
     {
         'name': 'loc_30.283276_120.190647',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.190647_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.190647_3000.0_z16.tif',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/06_30.283276_120.190647_3000.0/distance_dataset_train_30.283276_120.190647_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/06_30.283276_120.190647_3000.0/mask_prob_30.283276_120.190647_3000.0_z16.tif',
     },
     {
         'name': 'loc_30.283276_120.253046',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.253046_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.253046_3000.0_z16.tif',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/07_30.283276_120.253046_3000.0/distance_dataset_train_30.283276_120.253046_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/07_30.283276_120.253046_3000.0/mask_prob_30.283276_120.253046_3000.0_z16.tif',
     },
-    # Test locations (4 unseen locations NOT used during training)
+    {
+        'name': 'loc_30.229377_120.065850',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/08_30.229377_120.065850_3000.0/distance_dataset_train_30.229377_120.065850_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/08_30.229377_120.065850_3000.0/mask_prob_30.229377_120.065850_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.229377_120.128249',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/09_30.229377_120.128249_3000.0/distance_dataset_train_30.229377_120.128249_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/09_30.229377_120.128249_3000.0/mask_prob_30.229377_120.128249_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.229377_120.190647',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/10_30.229377_120.190647_3000.0/distance_dataset_train_30.229377_120.190647_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/10_30.229377_120.190647_3000.0/mask_prob_30.229377_120.190647_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.229377_120.253046',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/11_30.229377_120.253046_3000.0/distance_dataset_train_30.229377_120.253046_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/11_30.229377_120.253046_3000.0/mask_prob_30.229377_120.253046_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.175448_120.065850',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/12_30.175448_120.065850_3000.0/distance_dataset_train_30.175448_120.065850_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/12_30.175448_120.065850_3000.0/mask_prob_30.175448_120.065850_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.175448_120.128249',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/13_30.175448_120.128249_3000.0/distance_dataset_train_30.175448_120.128249_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/13_30.175448_120.128249_3000.0/mask_prob_30.175448_120.128249_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.175448_120.190647',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/14_30.175448_120.190647_3000.0/distance_dataset_train_30.175448_120.190647_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/14_30.175448_120.190647_3000.0/mask_prob_30.175448_120.190647_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.175448_120.253046',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/15_30.175448_120.253046_3000.0/distance_dataset_train_30.175448_120.253046_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/15_30.175448_120.253046_3000.0/mask_prob_30.175448_120.253046_3000.0_z16.tif',
+    },
+    # Test locations (4 unseen locations NOT used during training) - folders 00-03
     {
         'name': 'test_loc_30.337145_120.065850',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.337145_120.065850_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.337145_120.06585_3000.0_z16.tif',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/00_30.337145_120.065850_3000.0/distance_dataset_train_30.337145_120.065850_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/00_30.337145_120.065850_3000.0/mask_prob_30.337145_120.065850_3000.0_z16.tif',
     },
     {
         'name': 'test_loc_30.337145_120.128249',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.337145_120.128249_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.337145_120.128249_3000.0_z16.tif',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/01_30.337145_120.128249_3000.0/distance_dataset_train_30.337145_120.128249_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/01_30.337145_120.128249_3000.0/mask_prob_30.337145_120.128249_3000.0_z16.tif',
     },
     {
         'name': 'test_loc_30.337145_120.190647',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.337145_120.190647_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.337145_120.190647_3000.0_z16.tif',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/02_30.337145_120.190647_3000.0/distance_dataset_train_30.337145_120.190647_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/02_30.337145_120.190647_3000.0/mask_prob_30.337145_120.190647_3000.0_z16.tif',
     },
     {
         'name': 'test_loc_30.337145_120.253046',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.337145_120.253046_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.337145_120.253046_3000.0_z16.tif',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/03_30.337145_120.253046_3000.0/distance_dataset_train_30.337145_120.253046_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/03_30.337145_120.253046_3000.0/mask_prob_30.337145_120.253046_3000.0_z16.tif',
     },
 ]
 
@@ -135,7 +135,8 @@ DATASETS = [
 # Helper Functions
 ##########################################################################################
 
-def get_env_params(use_basemap=True, point_style=None, point_dilation=None, problem_size=20):
+def get_env_params(use_basemap=True, point_style=None, point_dilation=None, 
+                   basemap_normalize='none', basemap_norm_clip=None, problem_size=20):
     """
     Get environment parameters based on configuration.
     
@@ -143,6 +144,8 @@ def get_env_params(use_basemap=True, point_style=None, point_dilation=None, prob
         use_basemap: Whether to use basemap (in_channels=2 if True, 1 if False)
         point_style: 'white_on_black' or 'black_on_white' (default depends on use_basemap)
         point_dilation: '3x3' or '1x1' (default depends on use_basemap)
+        basemap_normalize: 'none' or 'zscore' (must match training config!)
+        basemap_norm_clip: clip value after zscore (None to disable)
         problem_size: Number of nodes in TSP
     """
     in_channels = 2 if use_basemap else 1
@@ -173,6 +176,9 @@ def get_env_params(use_basemap=True, point_style=None, point_dilation=None, prob
         'img_size': img_size,
         'patch_size': patch_size,
         'in_channels': in_channels,
+        # Basemap normalization (must match training config!)
+        'basemap_normalize': basemap_normalize,
+        'basemap_norm_clip': basemap_norm_clip,
     }
 
 
@@ -211,18 +217,24 @@ MODEL_CONFIGS = {
         'use_basemap': False,
         'point_style': 'black_on_white',
         'point_dilation': '1x1',
+        'basemap_normalize': 'none',  # No basemap, no normalization needed
+        'basemap_norm_clip': None,
     },
     'basemap_blackW1x1': {
         'name': 'Basemap + 黑点白底 1x1 (ch2_roadnet)',
         'use_basemap': True,
         'point_style': 'black_on_white',
         'point_dilation': '1x1',
+        'basemap_normalize': 'none',  # Old models trained without zscore
+        'basemap_norm_clip': None,
     },
     'basemap_whiteB3x3': {
         'name': 'Basemap + 白点黑底 3x3 (ch2_blackW3x3)',
         'use_basemap': True,
         'point_style': 'white_on_black',
         'point_dilation': '3x3',
+        'basemap_normalize': 'zscore',  # New model trained with zscore normalization
+        'basemap_norm_clip': 3.0,
     },
 }
 
@@ -495,6 +507,8 @@ def test_single_model(checkpoint_path, config_name, gpu, batch_size, dataset_nam
     use_basemap = config['use_basemap']
     point_style = config.get('point_style')
     point_dilation = config.get('point_dilation')
+    basemap_normalize = config.get('basemap_normalize', 'none')
+    basemap_norm_clip = config.get('basemap_norm_clip', None)
     model_name = config.get('name', f"Model ({config_name})")
     
     # Setup device
@@ -514,11 +528,14 @@ def test_single_model(checkpoint_path, config_name, gpu, batch_size, dataset_nam
     print(f"  use_basemap: {use_basemap}")
     print(f"  point_style: {point_style}")
     print(f"  point_dilation: {point_dilation}")
+    print(f"  basemap_normalize: {basemap_normalize}")
     
     env_params = get_env_params(
         use_basemap=use_basemap,
         point_style=point_style,
-        point_dilation=point_dilation
+        point_dilation=point_dilation,
+        basemap_normalize=basemap_normalize,
+        basemap_norm_clip=basemap_norm_clip
     )
     model_params = get_model_params(use_basemap=use_basemap)
     
@@ -609,24 +626,31 @@ def test_multiple_models(checkpoints, gpu, batch_size, dataset_names=None):
         use_basemap = config['use_basemap']
         point_style = config.get('point_style')
         point_dilation = config.get('point_dilation')
+        basemap_normalize = config.get('basemap_normalize', 'none')
+        basemap_norm_clip = config.get('basemap_norm_clip', None)
         model_name = config['name']
         
         print(f"\n{'='*70}")
         print(f"Testing: {model_name}")
         print(f"{'='*70}")
         print(f"Checkpoint: {checkpoint_path}")
-        print(f"Config: use_basemap={use_basemap}, point_style={point_style}, point_dilation={point_dilation}")
+        print(f"Config: use_basemap={use_basemap}, point_style={point_style}, point_dilation={point_dilation}, basemap_normalize={basemap_normalize}")
         
         env_params = get_env_params(
             use_basemap=use_basemap,
             point_style=point_style,
-            point_dilation=point_dilation
+            point_dilation=point_dilation,
+            basemap_normalize=basemap_normalize,
+            basemap_norm_clip=basemap_norm_clip
         )
         model_params = get_model_params(use_basemap=use_basemap)
         
         model = Model(**model_params)
         checkpoint = torch.load(checkpoint_path, map_location=device)
-        model.load_state_dict(checkpoint['model_state_dict'])
+        # Use strict=False to ignore extra keys like edge_head from aux_pretrain models
+        load_result = model.load_state_dict(checkpoint['model_state_dict'], strict=False)
+        if load_result.unexpected_keys:
+            print(f"  Note: Ignoring unexpected keys (aux pretrain layers): {load_result.unexpected_keys}")
         model.to(device)
         print(f"Loaded checkpoint from epoch {checkpoint.get('epoch', 'unknown')}")
         

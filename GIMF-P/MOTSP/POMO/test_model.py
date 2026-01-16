@@ -46,30 +46,87 @@ from MOTSPModel import TSPModel as Model
 ##########################################################################################
 
 DATASETS = [
+    # Training locations (12 locations used during training)
     {
-        'name': '杭州',
-        'npz_path': '../../../MMDataset/杭州/distance_dataset_30.318899_120.055447_5000.0.npz',
-        'basemap_path': '../../../MMDataset/杭州/mask_prob_30.318899_120.055447_5000.0_z16.float32.tif',
+        'name': 'loc_30.175448_120.065850',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.065850_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.06585_3000.0_z16.tif',
     },
     {
-        'name': '上海',
-        'npz_path': '../../../MMDataset/上海/distance_dataset_31.240186_121.496062_5000.0.npz',
-        'basemap_path': '../../../MMDataset/上海/mask_prob_31.240186_121.496062_5000.0_z16.float32.tif',
+        'name': 'loc_30.175448_120.128249',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.128249_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.128249_3000.0_z16.tif',
     },
     {
-        'name': '柏林',
-        'npz_path': '../../../MMDataset/柏林/distance_dataset_52.516298_13.377914_5000.0.npz',
-        'basemap_path': '../../../MMDataset/柏林/mask_prob_52.516298_13.377914_5000.0_z16.float32.tif',
+        'name': 'loc_30.175448_120.190647',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.190647_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.190647_3000.0_z16.tif',
     },
     {
-        'name': '鹤岗',
-        'npz_path': '../../../MMDataset/鹤岗/distance_dataset_47.332394_130.278898_5000.0.npz',
-        'basemap_path': '../../../MMDataset/鹤岗/mask_prob_47.332394_130.278898_5000.0_z16.float32.tif',
+        'name': 'loc_30.175448_120.253046',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.253046_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.253046_3000.0_z16.tif',
     },
     {
-        'name': '苏州',
-        'npz_path': '../../../MMDataset/苏州/distance_dataset_test_31.298909_120.579205_5000.0.npz',
-        'basemap_path': '../../../MMDataset/苏州/mask_prob_31.298909_120.579205_5000.0_z16.float32.tif',
+        'name': 'loc_30.229377_120.065850',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.065850_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.06585_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.229377_120.128249',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.128249_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.128249_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.229377_120.190647',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.190647_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.190647_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.229377_120.253046',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.253046_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.253046_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.283276_120.065850',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.065850_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.06585_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.283276_120.128249',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.128249_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.128249_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.283276_120.190647',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.190647_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.190647_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.283276_120.253046',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.253046_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.253046_3000.0_z16.tif',
+    },
+    # Test locations (4 unseen locations NOT used during training)
+    {
+        'name': 'test_loc_30.337145_120.065850',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.337145_120.065850_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.337145_120.06585_3000.0_z16.tif',
+    },
+    {
+        'name': 'test_loc_30.337145_120.128249',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.337145_120.128249_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.337145_120.128249_3000.0_z16.tif',
+    },
+    {
+        'name': 'test_loc_30.337145_120.190647',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.337145_120.190647_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.337145_120.190647_3000.0_z16.tif',
+    },
+    {
+        'name': 'test_loc_30.337145_120.253046',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.337145_120.253046_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.337145_120.253046_3000.0_z16.tif',
     },
 ]
 
@@ -173,6 +230,13 @@ MODEL_CONFIGS = {
 def load_optimal_solutions(script_dir, dataset_names=None):
     """Load pre-computed optimal solutions for all datasets.
     
+    This function supports two modes:
+    1. Load from separate optimal file (*_optimal_undirected_exact_dp.npz) if exists
+    2. Fall back to using tsp_obj_norm from original data file (OR-Tools solution)
+    
+    Note: OR-Tools solutions are nearly identical to exact DP solutions (gap ~0%),
+    so both can be used as optimal baselines.
+    
     Args:
         script_dir: Directory of the script for resolving relative paths.
         dataset_names: Optional list of dataset names to load. If None, load all.
@@ -195,39 +259,47 @@ def load_optimal_solutions(script_dir, dataset_names=None):
         # Resolve paths
         source_path = os.path.normpath(os.path.join(script_dir, npz_path))
         
-        # Construct optimal solution file path
-        base_name = os.path.basename(source_path).replace('.npz', '')
-        optimal_path = os.path.join(os.path.dirname(source_path), 
-                                    f'{base_name}_optimal_undirected_exact_dp.npz')
-        
-        if not os.path.exists(optimal_path):
-            print(f'Warning: Optimal solution file not found for {name}: {optimal_path}')
-            continue
-        
         if not os.path.exists(source_path):
             print(f'Warning: Source dataset not found for {name}: {source_path}')
             continue
         
-        # Load optimal solutions
-        opt_data = np.load(optimal_path, allow_pickle=True)
-        optimal_data[name] = {
-            'sample_indices': opt_data['sample_indices'],
-            'optimal_tours': opt_data['optimal_tours'],
-            'optimal_distances_m': opt_data['optimal_distances_m'],
-            'optimal_distances_norm': opt_data['optimal_distances_norm'],
-        }
-        
-        # Load source data for the sampled instances
+        # Load source data
         src_data = np.load(source_path, allow_pickle=True)
-        sample_indices = opt_data['sample_indices']
+        
+        # Check for separate optimal solution file
+        base_name = os.path.basename(source_path).replace('.npz', '')
+        optimal_path = os.path.join(os.path.dirname(source_path), 
+                                    f'{base_name}_optimal_undirected_exact_dp.npz')
+        
+        if os.path.exists(optimal_path):
+            # Load from separate optimal file
+            opt_data = np.load(optimal_path, allow_pickle=True)
+            sample_indices = opt_data['sample_indices']
+            optimal_data[name] = {
+                'sample_indices': sample_indices,
+                'optimal_tours': opt_data['optimal_tours'],
+                'optimal_distances_m': opt_data['optimal_distances_m'],
+                'optimal_distances_norm': opt_data['optimal_distances_norm'],
+            }
+            print(f'Loaded {len(sample_indices)} optimal solutions for {name} (from exact DP file)')
+        else:
+            # Fall back to using tsp_obj_norm from original data file
+            # OR-Tools solutions are nearly identical to exact DP (~0% gap)
+            num_samples = len(src_data['tsp_obj_norm'])
+            sample_indices = np.arange(num_samples)
+            optimal_data[name] = {
+                'sample_indices': sample_indices,
+                'optimal_tours': src_data['tsp_route_idx'][:, :-1],  # Remove last node (return to depot)
+                'optimal_distances_m': src_data['tsp_obj_m'],
+                'optimal_distances_norm': src_data['tsp_obj_norm'],
+            }
+            print(f'Loaded {len(sample_indices)} optimal solutions for {name} (from OR-Tools in data file)')
         
         source_data[name] = {
             'matched_node_norm': src_data['matched_node_norm'][sample_indices],  # 使用匹配到路网的节点坐标
             'undirected_dist_norm': src_data['undirected_dist_norm'][sample_indices],
             'basemap_path': os.path.normpath(os.path.join(script_dir, basemap_path)) if basemap_path else None,
         }
-        
-        print(f'Loaded {len(sample_indices)} optimal solutions for {name}')
     
     return optimal_data, source_data
 

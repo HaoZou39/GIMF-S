@@ -36,27 +36,69 @@ from MOTSPTrainer import TSPTrainer as Trainer
 
 # Multi-dataset configuration
 # Each dataset entry contains: name, npz_path, basemap_path
-# NOTE: For benchmarking, temporarily using only ONE dataset to measure baseline speed
+# Using new dataset from MMDataset/30.256330_120.159448
+# Training set: 12 locations (80% of 16 total locations)
+# Test set: 4 locations (20% of 16 total locations) - reserved for testing
 DATASETS = [
     {
-        'name': '杭州',
-        'npz_path': '../../../MMDataset/杭州/distance_dataset_30.318899_120.055447_5000.0.npz',
-        'basemap_path': '../../../MMDataset/杭州/mask_prob_30.318899_120.055447_5000.0_z16.float32.tif',
+        'name': 'loc_30.175448_120.065850',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.065850_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.06585_3000.0_z16.tif',
     },
     {
-        'name': '上海',
-        'npz_path': '../../../MMDataset/上海/distance_dataset_31.240186_121.496062_5000.0.npz',
-        'basemap_path': '../../../MMDataset/上海/mask_prob_31.240186_121.496062_5000.0_z16.float32.tif',
+        'name': 'loc_30.175448_120.128249',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.128249_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.128249_3000.0_z16.tif',
     },
     {
-        'name': '柏林',
-        'npz_path': '../../../MMDataset/柏林/distance_dataset_52.516298_13.377914_5000.0.npz',
-        'basemap_path': '../../../MMDataset/柏林/mask_prob_52.516298_13.377914_5000.0_z16.float32.tif',
+        'name': 'loc_30.175448_120.190647',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.190647_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.190647_3000.0_z16.tif',
     },
     {
-        'name': '鹤岗',
-        'npz_path': '../../../MMDataset/鹤岗/distance_dataset_47.332394_130.278898_5000.0.npz',
-        'basemap_path': '../../../MMDataset/鹤岗/mask_prob_47.332394_130.278898_5000.0_z16.float32.tif',
+        'name': 'loc_30.175448_120.253046',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.253046_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.253046_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.229377_120.065850',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.065850_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.06585_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.229377_120.128249',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.128249_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.128249_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.229377_120.190647',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.190647_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.190647_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.229377_120.253046',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.253046_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.253046_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.283276_120.065850',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.065850_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.06585_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.283276_120.128249',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.128249_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.128249_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.283276_120.190647',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.190647_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.190647_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.283276_120.253046',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.253046_3000.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.253046_3000.0_z16.tif',
     },
 ]
 
@@ -64,13 +106,17 @@ env_params = {
     'problem_size': 20,
     'pomo_size': 20,
     'num_objectives': 1,
-    'use_basemap': True,  # Enable basemap as additional channel(s)
+    'use_basemap': True,  # Enable basemap as additional channel
+    
+    # Point representation configuration
+    'point_style': 'black_on_white',  # Black points on white background
+    'point_dilation': '1x1',  # Single pixel (no dilation)
     
     # Multi-dataset configuration
     'use_custom_dataset': True,  # Set to False to use random generated problems (BENCHMARK TEST)
     'datasets': DATASETS,  # List of dataset configurations
     'use_distance_matrix': True,  # Use pre-computed road network distance matrix
-    'dataset_switch_interval': 10,  # Batches before switching to next dataset (reduces basemap overhead)
+    'dataset_switch_interval': 1,  # Batches before switching to next dataset (reduces basemap overhead)
     
     # Default basemap for random generation mode (when use_custom_dataset=False)
     'basemap_dir': 'data',
@@ -117,6 +163,8 @@ if num_objectives == 1:
         assert env_params.get('use_basemap', False), \
             f"Single objective with in_channels={in_channels} requires basemap (set use_basemap=True)"
         print(f"Using {in_channels}-channel input: Channel 0=Points, Channel 1+=Basemap")
+    else:
+        print(f"Using {in_channels}-channel input: Points only (no basemap)")
 else:
     # Multi-objective: in_channels must equal num_objectives
     assert in_channels == num_objectives, \
@@ -167,12 +215,19 @@ trainer_params = {
 
 # Generate logger desc based on dataset and model configuration
 def _get_dataset_names():
-    """Extract dataset names for logging"""
+    """Extract dataset names for logging - use short format to avoid long paths"""
     if env_params.get('use_custom_dataset', False):
         datasets = env_params.get('datasets', [])
         if datasets:
-            names = [d['name'] for d in datasets]
-            return '_'.join(names)
+            # Use dataset count and short source identifier to avoid long paths
+            num_datasets = len(datasets)
+            # Extract source identifier from first dataset path
+            first_path = datasets[0].get('npz_path', '')
+            if '30.256330_120.159448' in first_path:
+                source_id = 'newdata'  # Short identifier for new dataset
+            else:
+                source_id = 'custom'
+            return f'{num_datasets}loc_{source_id}'
         return 'custom'
     return 'random'
 
@@ -181,12 +236,20 @@ def _get_model_config_suffix():
     suffix_parts = []
     
     # Basemap configuration & point representation
-    # Note: Point representation is automatically selected based on use_basemap:
-    #   - use_basemap=True:  black bg + white points + 3x3 dilation (blackW3x3)
-    #   - use_basemap=False: white bg + black points + single pixel (whiteB1px)
-    if env_params.get('use_basemap', False):
+    use_basemap = env_params.get('use_basemap', False)
+    point_style = env_params.get('point_style', 'white_on_black' if use_basemap else 'black_on_white')
+    point_dilation = env_params.get('point_dilation', '3x3' if use_basemap else '1x1')
+    
+    if use_basemap:
         suffix_parts.append(f"ch{model_params['in_channels']}")  # e.g., ch2
-        suffix_parts.append("blackW3x3")  # black background, white points, 3x3 dilation
+        # Point style: white_on_black -> blackW, black_on_white -> whiteB
+        if point_style == 'white_on_black':
+            style_str = "blackW"  # black background, white points
+        else:
+            style_str = "whiteB"  # white background, black points
+        # Point dilation: 3x3 or 1x1
+        dilation_str = point_dilation
+        suffix_parts.append(f"{style_str}{dilation_str}")
     else:
         suffix_parts.append("no_basemap")
         suffix_parts.append("whiteB1px")  # white background, black points, 1 pixel

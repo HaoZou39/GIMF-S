@@ -39,10 +39,20 @@ class MultiDatasetLoader:
         for i, ds in enumerate(datasets):
             print(f"Loading dataset {i+1}/{self.num_datasets}: {ds['name']}...")
             data = np.load(ds['npz_path'], allow_pickle=True)
+            
+            # Load Euclidean distance matrix if available (for correct detour calculation)
+            euclid_dist_norm = None
+            if 'euclid_dist_norm' in data.files:
+                euclid_dist_norm = data['euclid_dist_norm']
+                print(f"  [OK] Loaded precomputed euclid_dist_norm")
+            else:
+                print(f"  [WARN] euclid_dist_norm not found. Run precompute_euclid_distance.py first!")
+            
             self.data_cache[i] = {
                 'name': ds['name'],
                 'problems': data['matched_node_norm'],
                 'dist_matrix': data['undirected_dist_norm'],
+                'euclid_dist': euclid_dist_norm,  # 新增：归一化的欧式距离矩阵
                 'basemap_path': ds['basemap_path'],
                 'total_instances': data['matched_node_norm'].shape[0],
                 'current_idx': 0,
@@ -64,7 +74,8 @@ class MultiDatasetLoader:
         
         Returns:
             problems: torch.Tensor (batch_size, problem_size, 2)
-            dist_matrix: torch.Tensor (batch_size, problem_size, problem_size)
+            dist_matrix: torch.Tensor (batch_size, problem_size, problem_size) - road distance
+            euclid_dist: torch.Tensor or None (batch_size, problem_size, problem_size) - Euclidean distance
             basemap_path: str (path to the corresponding basemap)
             dataset_name: str (name of the selected dataset)
         """
@@ -101,9 +112,15 @@ class MultiDatasetLoader:
         problems = ds['problems'][random_indices]
         dist_matrix = ds['dist_matrix'][random_indices]
         
+        # Load Euclidean distance matrix if available
+        euclid_dist = None
+        if ds['euclid_dist'] is not None:
+            euclid_dist = torch.tensor(ds['euclid_dist'][random_indices], dtype=torch.float32)
+        
         return (
             torch.tensor(problems, dtype=torch.float32),
             torch.tensor(dist_matrix, dtype=torch.float32),
+            euclid_dist,
             ds['basemap_path'],
             ds['name']
         )
@@ -118,6 +135,13 @@ class MultiDatasetLoader:
         # For simplicity, use the same dataset for now
         # Mixed sampling requires more complex handling of basemaps
         return self._sample_single_dataset(batch_size)
+    
+    def has_euclid_dist(self):
+        """Check if any dataset has precomputed Euclidean distance matrix."""
+        for ds in self.data_cache.values():
+            if ds['euclid_dist'] is not None:
+                return True
+        return False
     
     def get_dataset_info(self):
         """Return information about loaded datasets"""

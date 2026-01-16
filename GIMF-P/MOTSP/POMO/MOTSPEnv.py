@@ -10,6 +10,7 @@ class Reset_State:
     problems: torch.Tensor
     # shape: (batch, problem, 2)
     xy_img: torch.Tensor = None
+    euclid_distance_matrix: torch.Tensor = None  # (batch, problem, problem) - precomputed Euclidean distance
 
 @dataclass
 class Step_State:
@@ -91,14 +92,22 @@ class TSPEnv:
         # Distance matrix configuration
         ####################################
         self.use_distance_matrix = env_params.get('use_distance_matrix', False)
-        self.distance_matrix = None  # (batch, problem, problem)
+        self.distance_matrix = None  # (batch, problem, problem) - road distance
+        self.euclid_distance_matrix = None  # (batch, problem, problem) - Euclidean distance (precomputed)
         
         # Basemap cache for multi-dataset support
         ####################################
         self.basemap_cache = {}  # Cache for different basemaps: {path: tensor}
         self.current_basemap_path = None  # Currently active basemap path
 
-    def load_problems(self, batch_size, aug_factor=1, problems=None, distance_matrix=None, basemap_path=None):
+        # Basemap normalization (optional)
+        # - 'none': keep original [0,1] basemap values
+        # - 'zscore': per-basemap z-score normalization (improves cross-city robustness)
+        self.basemap_normalize = env_params.get('basemap_normalize', 'none')
+        self.basemap_norm_clip = env_params.get('basemap_norm_clip', None)
+
+    def load_problems(self, batch_size, aug_factor=1, problems=None, distance_matrix=None, 
+                      euclid_distance_matrix=None, basemap_path=None):
         """
         Load problems with basemap support
 
@@ -106,7 +115,9 @@ class TSPEnv:
             batch_size: Number of problem instances
             aug_factor: Data augmentation factor
             problems: Pre-generated problems (optional)
-            distance_matrix: Pre-computed distance matrix (optional), shape (batch, problem, problem)
+            distance_matrix: Pre-computed road distance matrix (optional), shape (batch, problem, problem)
+            euclid_distance_matrix: Pre-computed Euclidean distance matrix (optional), shape (batch, problem, problem)
+                                   Should use the same normalization as distance_matrix for correct detour calculation
             basemap_path: Path to the basemap file (optional, for multi-dataset support)
         """
         self.batch_size = batch_size
@@ -125,6 +136,12 @@ class TSPEnv:
             # Move to correct device if needed
             self.distance_matrix = distance_matrix.to(device) if distance_matrix.device != device else distance_matrix
             self.use_distance_matrix = True
+        
+        # Store Euclidean distance matrix if provided (for correct detour calculation)
+        if euclid_distance_matrix is not None:
+            self.euclid_distance_matrix = euclid_distance_matrix.to(device) if euclid_distance_matrix.device != device else euclid_distance_matrix
+        else:
+            self.euclid_distance_matrix = None
 
         # problems.shape: (batch, problem, 2*num_objectives)
         if aug_factor > 1:
@@ -156,7 +173,7 @@ class TSPEnv:
                 self.basemap_resized.shape[0] != self.img_size):
                 
                 # Try to get from cache first
-                cache_key = (actual_basemap_path, self.img_size)
+                cache_key = (actual_basemap_path, self.img_size, self.basemap_normalize, self.basemap_norm_clip)
                 if cache_key in self.basemap_cache:
                     self.basemap_resized = self.basemap_cache[cache_key]
                 else:
@@ -166,6 +183,17 @@ class TSPEnv:
                         resolution=self.img_size,
                         downscale_method='AREA'
                     )
+
+                    # Optional normalization for improved generalization
+                    if self.basemap_normalize == 'zscore':
+                        bm = self.basemap_resized
+                        mean = bm.mean()
+                        std = bm.std()
+                        bm = (bm - mean) / (std + 1e-6)
+                        if self.basemap_norm_clip is not None:
+                            clip = float(self.basemap_norm_clip)
+                            bm = torch.clamp(bm, -clip, clip)
+                        self.basemap_resized = bm
                     self.basemap_cache[cache_key] = self.basemap_resized
                 
                 self.current_basemap_path = actual_basemap_path
@@ -183,7 +211,7 @@ class TSPEnv:
             self.basemap_resized = self.basemap_resized.to(device)
             # Update cache with device-correct tensor
             if self.current_basemap_path is not None:
-                cache_key = (self.current_basemap_path, self.img_size)
+                cache_key = (self.current_basemap_path, self.img_size, self.basemap_normalize, self.basemap_norm_clip)
                 self.basemap_cache[cache_key] = self.basemap_resized
 
         # Image construction
@@ -264,7 +292,7 @@ class TSPEnv:
 
         reward = None
         done = False
-        return Reset_State(self.problems, self.xy_img), reward, done
+        return Reset_State(self.problems, self.xy_img, self.euclid_distance_matrix), reward, done
 
     def pre_step(self):
         reward = None

@@ -37,68 +37,70 @@ from MOTSPTrainer import TSPTrainer as Trainer
 # Multi-dataset configuration
 # Each dataset entry contains: name, npz_path, basemap_path
 # Using new dataset from MMDataset/30.256330_120.159448
-# Training set: 12 locations (80% of 16 total locations)
-# Test set: 4 locations (20% of 16 total locations) - reserved for testing
+# Dataset structure: MMDataset/30.256330_120.159448/xx_lat_lon_radius/distance_dataset_train_*.npz
+# Training set: 12 locations (75% of 16 total locations)
+# Test set: 4 locations (25% of 16 total locations) - reserved for testing (folders 00-03)
 DATASETS = [
-    {
-        'name': 'loc_30.175448_120.065850',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.065850_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.06585_3000.0_z16.tif',
-    },
-    {
-        'name': 'loc_30.175448_120.128249',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.128249_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.128249_3000.0_z16.tif',
-    },
-    {
-        'name': 'loc_30.175448_120.190647',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.190647_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.190647_3000.0_z16.tif',
-    },
-    {
-        'name': 'loc_30.175448_120.253046',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.175448_120.253046_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.175448_120.253046_3000.0_z16.tif',
-    },
-    {
-        'name': 'loc_30.229377_120.065850',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.065850_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.06585_3000.0_z16.tif',
-    },
-    {
-        'name': 'loc_30.229377_120.128249',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.128249_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.128249_3000.0_z16.tif',
-    },
-    {
-        'name': 'loc_30.229377_120.190647',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.190647_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.190647_3000.0_z16.tif',
-    },
-    {
-        'name': 'loc_30.229377_120.253046',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.229377_120.253046_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.229377_120.253046_3000.0_z16.tif',
-    },
+    # Training locations (folders 04-15)
     {
         'name': 'loc_30.283276_120.065850',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.065850_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.06585_3000.0_z16.tif',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/04_30.283276_120.065850_3000.0/distance_dataset_train_30.283276_120.065850_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/04_30.283276_120.065850_3000.0/mask_prob_30.283276_120.065850_3000.0_z16.tif',
     },
     {
         'name': 'loc_30.283276_120.128249',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.128249_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.128249_3000.0_z16.tif',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/05_30.283276_120.128249_3000.0/distance_dataset_train_30.283276_120.128249_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/05_30.283276_120.128249_3000.0/mask_prob_30.283276_120.128249_3000.0_z16.tif',
     },
     {
         'name': 'loc_30.283276_120.190647',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.190647_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.190647_3000.0_z16.tif',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/06_30.283276_120.190647_3000.0/distance_dataset_train_30.283276_120.190647_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/06_30.283276_120.190647_3000.0/mask_prob_30.283276_120.190647_3000.0_z16.tif',
     },
     {
         'name': 'loc_30.283276_120.253046',
-        'npz_path': '../../../MMDataset/30.256330_120.159448/distance_dataset_test_30.283276_120.253046_3000.npz',
-        'basemap_path': '../../../MMDataset/30.256330_120.159448/mask_prob_30.283276_120.253046_3000.0_z16.tif',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/07_30.283276_120.253046_3000.0/distance_dataset_train_30.283276_120.253046_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/07_30.283276_120.253046_3000.0/mask_prob_30.283276_120.253046_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.229377_120.065850',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/08_30.229377_120.065850_3000.0/distance_dataset_train_30.229377_120.065850_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/08_30.229377_120.065850_3000.0/mask_prob_30.229377_120.065850_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.229377_120.128249',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/09_30.229377_120.128249_3000.0/distance_dataset_train_30.229377_120.128249_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/09_30.229377_120.128249_3000.0/mask_prob_30.229377_120.128249_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.229377_120.190647',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/10_30.229377_120.190647_3000.0/distance_dataset_train_30.229377_120.190647_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/10_30.229377_120.190647_3000.0/mask_prob_30.229377_120.190647_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.229377_120.253046',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/11_30.229377_120.253046_3000.0/distance_dataset_train_30.229377_120.253046_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/11_30.229377_120.253046_3000.0/mask_prob_30.229377_120.253046_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.175448_120.065850',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/12_30.175448_120.065850_3000.0/distance_dataset_train_30.175448_120.065850_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/12_30.175448_120.065850_3000.0/mask_prob_30.175448_120.065850_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.175448_120.128249',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/13_30.175448_120.128249_3000.0/distance_dataset_train_30.175448_120.128249_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/13_30.175448_120.128249_3000.0/mask_prob_30.175448_120.128249_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.175448_120.190647',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/14_30.175448_120.190647_3000.0/distance_dataset_train_30.175448_120.190647_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/14_30.175448_120.190647_3000.0/mask_prob_30.175448_120.190647_3000.0_z16.tif',
+    },
+    {
+        'name': 'loc_30.175448_120.253046',
+        'npz_path': '../../../MMDataset/30.256330_120.159448/15_30.175448_120.253046_3000.0/distance_dataset_train_30.175448_120.253046_3000.0_p20.npz',
+        'basemap_path': '../../../MMDataset/30.256330_120.159448/15_30.175448_120.253046_3000.0/mask_prob_30.175448_120.253046_3000.0_z16.tif',
     },
 ]
 
@@ -109,8 +111,10 @@ env_params = {
     'use_basemap': True,  # Enable basemap as additional channel
     
     # Point representation configuration
-    'point_style': 'black_on_white',  # Black points on white background
-    'point_dilation': '1x1',  # Single pixel (no dilation)
+    'point_style': 'white_on_black',  # Black points on white background
+    'point_dilation': '3x3',  # 3x3 dilation for stronger node signal
+    'basemap_normalize': 'zscore',  # 'none' or 'zscore'
+    'basemap_norm_clip': 3.0,  # clip after zscore (None to disable)
     
     # Multi-dataset configuration
     'use_custom_dataset': True,  # Set to False to use random generated problems (BENCHMARK TEST)
@@ -141,6 +145,14 @@ model_params = {
     'fusion_layer_num': 3,
     'bn_num': 10,
     'bn_img_num': 10,
+
+    # Edge-aware auxiliary module
+    'use_edge_head': True,
+    'use_edge_bias': True,
+    'edge_head_hidden_dim': 256,
+    'edge_head_use_euclid': True,
+    'edge_bias_alpha': 1.0,
+    'edge_bias_clip': 5.0,
 }
 
 model_params['img_size'] = math.ceil(
@@ -194,6 +206,26 @@ trainer_params = {
     'validation_interval': 10,  # Validate every N epochs (set to 0 to disable)
     'validation_batch_size': 64,  # Batch size for validation
     
+    # Edge-aware multi-task training (roadnet supervision)
+    'edge_pretrain': {
+        'enable': True,
+        'epochs': 5,
+    },
+    'edge_supervised': {
+        'enable': True,
+        'weight': 1.0,
+        'unreachable_threshold': None,
+        'eps': 1e-6,
+    },
+    'edge_ranking': {
+        'enable': True,
+        'weight': 0.1,
+        'euclid_topk': 5,
+        'margin': 0.5,
+        'unreachable_threshold': None,
+        'eps': 1e-6,
+    },
+
     'logging': {
         'model_save_interval': 5,
         'img_save_interval': 10,

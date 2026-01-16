@@ -67,9 +67,18 @@ class OptimalSolutionValidator:
             src_data = np.load(source_path, allow_pickle=True)
             sample_indices = opt_data['sample_indices']
             
+            # Load Euclidean distance matrix if available
+            euclid_dist_norm = None
+            if 'euclid_dist_norm' in src_data.files:
+                euclid_dist_norm = src_data['euclid_dist_norm'][sample_indices]
+                logger.info(f'  [OK] Loaded precomputed euclid_dist_norm for {name}')
+            else:
+                logger.warning(f'  [WARN] euclid_dist_norm not found for {name}. Run precompute_euclid_distance.py first!')
+            
             self.source_data[name] = {
                 'matched_node_norm': src_data['matched_node_norm'][sample_indices],  # (num_samples, problem_size, 2) 使用匹配到路网的节点坐标
                 'undirected_dist_norm': src_data['undirected_dist_norm'][sample_indices],  # (num_samples, problem_size, problem_size)
+                'euclid_dist_norm': euclid_dist_norm,  # (num_samples, problem_size, problem_size) 欧式距离矩阵
                 'basemap_path': os.path.normpath(os.path.join(script_dir, basemap_path)) if basemap_path else None,
             }
             
@@ -89,6 +98,7 @@ class OptimalSolutionValidator:
         Returns:
             problems: (batch_size, problem_size, 2)
             distance_matrix: (batch_size, problem_size, problem_size)
+            euclid_distance_matrix: (batch_size, problem_size, problem_size) or None
             optimal_distances: (batch_size,)
             basemap_path: Path to basemap file or None
         """
@@ -97,10 +107,16 @@ class OptimalSolutionValidator:
         
         problems = torch.from_numpy(src['matched_node_norm'][batch_indices]).float()  # 使用匹配到路网的节点坐标
         distance_matrix = torch.from_numpy(src['undirected_dist_norm'][batch_indices]).float()
+        
+        # Load Euclidean distance matrix if available
+        euclid_distance_matrix = None
+        if src['euclid_dist_norm'] is not None:
+            euclid_distance_matrix = torch.from_numpy(src['euclid_dist_norm'][batch_indices]).float()
+        
         optimal_distances = opt['optimal_distances_norm'][batch_indices]
         basemap_path = src['basemap_path']
         
-        return problems, distance_matrix, optimal_distances, basemap_path
+        return problems, distance_matrix, euclid_distance_matrix, optimal_distances, basemap_path
     
     def get_num_samples(self, dataset_name):
         """Get number of samples for a dataset."""
@@ -335,7 +351,7 @@ class TSPTrainer:
             remaining = train_num_episode - episode
             batch_size = min(self.trainer_params['train_batch_size'], remaining)
 
-            avg_score_obj1, avg_score_obj2, avg_loss, batch_metrics = self._train_one_batch(batch_size)
+            avg_score_obj1, avg_score_obj2, avg_loss, batch_metrics = self._train_one_batch(batch_size, epoch)
             score_AM_obj1.update(avg_score_obj1, batch_size)
             score_AM_obj2.update(avg_score_obj2, batch_size)
             loss_AM.update(avg_loss, batch_size)
@@ -382,7 +398,7 @@ class TSPTrainer:
 
         return score_AM_obj1.avg, score_AM_obj2.avg, loss_AM.avg, epoch_metrics
 
-    def _train_one_batch(self, batch_size):
+    def _train_one_batch(self, batch_size, epoch: int):
 
         # Prep
         ###############################################
@@ -392,8 +408,10 @@ class TSPTrainer:
         if self.use_custom_dataset:
             if hasattr(self, 'multi_dataset_loader') and self.multi_dataset_loader is not None:
                 # Multi-dataset mode: sample from multiple datasets with basemap
-                problems, dist_matrix, basemap_path, dataset_name = self.multi_dataset_loader.sample_batch(batch_size)
-                self.env.load_problems(batch_size, problems=problems, distance_matrix=dist_matrix, basemap_path=basemap_path)
+                # Returns: problems, dist_matrix, euclid_dist, basemap_path, dataset_name
+                problems, dist_matrix, euclid_dist, basemap_path, dataset_name = self.multi_dataset_loader.sample_batch(batch_size)
+                self.env.load_problems(batch_size, problems=problems, distance_matrix=dist_matrix, 
+                                       euclid_distance_matrix=euclid_dist, basemap_path=basemap_path)
             else:
                 # Legacy single dataset mode
                 from MOTSP.MOTSProblemDef import load_problems_from_npz
@@ -421,6 +439,79 @@ class TSPTrainer:
         
         self.model.decoder.assign(pref)
         self.model.pre_forward(reset_state)
+
+        # ------------------------------------------------------------
+        # Edge-aware auxiliary losses (optional)
+        # ------------------------------------------------------------
+        edge_sup_cfg = self.trainer_params.get('edge_supervised', {})
+        edge_rank_cfg = self.trainer_params.get('edge_ranking', {})
+        pretrain_cfg = self.trainer_params.get('edge_pretrain', {})
+
+        # Default: disabled unless explicitly enabled
+        edge_sup_enable = bool(edge_sup_cfg.get('enable', False))
+        edge_rank_enable = bool(edge_rank_cfg.get('enable', False))
+
+        # Compute edge losses only if we have a distance matrix (roadnet supervision)
+        loss_edge_sup = torch.tensor(0.0, device=reset_state.problems.device)
+        loss_edge_rank = torch.tensor(0.0, device=reset_state.problems.device)
+
+        if (edge_sup_enable or edge_rank_enable) and getattr(self.env, 'distance_matrix', None) is not None:
+            dist_mat = self.env.distance_matrix
+            euclid_dist_mat = getattr(self.env, 'euclid_distance_matrix', None)  # Precomputed Euclidean distance
+            
+            if edge_sup_enable and hasattr(self.model, 'compute_edge_supervised_loss'):
+                loss_edge_sup = self.model.compute_edge_supervised_loss(
+                    problems=reset_state.problems,
+                    distance_matrix=dist_mat,
+                    euclid_distance_matrix=euclid_dist_mat,  # Pass precomputed Euclidean distance
+                    unreachable_threshold=edge_sup_cfg.get('unreachable_threshold', None),
+                    eps=float(edge_sup_cfg.get('eps', 1e-6)),
+                )
+            if edge_rank_enable and hasattr(self.model, 'compute_edge_hard_ranking_loss'):
+                loss_edge_rank = self.model.compute_edge_hard_ranking_loss(
+                    problems=reset_state.problems,
+                    distance_matrix=dist_mat,
+                    euclid_distance_matrix=euclid_dist_mat,  # Pass precomputed Euclidean distance
+                    euclid_topk=int(edge_rank_cfg.get('euclid_topk', 5)),
+                    margin=float(edge_rank_cfg.get('margin', 0.5)),
+                    unreachable_threshold=edge_rank_cfg.get('unreachable_threshold', edge_sup_cfg.get('unreachable_threshold', None)),
+                    eps=float(edge_rank_cfg.get('eps', 1e-6)),
+                )
+
+        # Optional pretrain stage: for first K epochs, train only edge losses (no RL rollout)
+        pretrain_enable = bool(pretrain_cfg.get('enable', False))
+        pretrain_epochs = int(pretrain_cfg.get('epochs', 0))
+        in_pretrain = pretrain_enable and (epoch <= pretrain_epochs)
+
+        if in_pretrain:
+            lam_sup = float(edge_sup_cfg.get('weight', 1.0))
+            lam_rank = float(edge_rank_cfg.get('weight', 0.1))
+            loss_mean = lam_sup * loss_edge_sup + lam_rank * loss_edge_rank
+
+            # Backward & step
+            self.model.zero_grad()
+            loss_mean.backward()
+
+            total_norm = 0.0
+            for p in self.model.parameters():
+                if p.grad is not None:
+                    param_norm = p.grad.data.norm(2)
+                    total_norm += param_norm.item() ** 2
+            grad_norm = total_norm ** 0.5
+
+            self.optimizer.step()
+
+            batch_metrics = {
+                'grad_norm': grad_norm,
+                'advantage_std': 0.0,
+                'advantage_mean': 0.0,
+                'edge_sup_loss': float(loss_edge_sup.item()),
+                'edge_rank_loss': float(loss_edge_rank.item()),
+                'in_pretrain': 1.0,
+            }
+
+            # No RL score in this stage
+            return 0.0, 0.0, loss_mean.item(), batch_metrics
         
         prob_list = torch.zeros(size=(batch_size, self.env.pomo_size, 0))
       
@@ -460,6 +551,12 @@ class TSPTrainer:
         tch_loss = -tch_advantage * log_prob # Minus Sign
         # shape = (batch, group)
         loss_mean = tch_loss.mean()
+
+        # Add edge-aware auxiliary losses (multi-task)
+        if (edge_sup_enable or edge_rank_enable):
+            lam_sup = float(edge_sup_cfg.get('weight', 0.0))
+            lam_rank = float(edge_rank_cfg.get('weight', 0.0))
+            loss_mean = loss_mean + lam_sup * loss_edge_sup + lam_rank * loss_edge_rank
         
         # Collect advantage statistics for TensorBoard
         advantage_std = tch_advantage.std().item()
@@ -502,6 +599,9 @@ class TSPTrainer:
             'grad_norm': grad_norm,
             'advantage_std': advantage_std,
             'advantage_mean': advantage_mean,
+            'edge_sup_loss': float(loss_edge_sup.item()),
+            'edge_rank_loss': float(loss_edge_rank.item()),
+            'in_pretrain': 0.0,
         }
         
         return score_mean_obj1.item(), score_mean_obj2.item(), loss_mean.item(), batch_metrics
@@ -531,7 +631,7 @@ class TSPTrainer:
                     actual_batch_size = len(batch_indices)
                     
                     # Get validation batch
-                    problems, dist_matrix, opt_dist, basemap_path = \
+                    problems, dist_matrix, euclid_dist, opt_dist, basemap_path = \
                         self.optimal_validator.get_validation_batch(dataset_name, batch_indices)
                     
                     # Load problems into environment
@@ -539,6 +639,7 @@ class TSPTrainer:
                         actual_batch_size, 
                         problems=problems, 
                         distance_matrix=dist_matrix,
+                        euclid_distance_matrix=euclid_dist,
                         basemap_path=basemap_path
                     )
                     

@@ -26,3 +26,4 @@ profiler_logs/
 # Cache directories
 **/basemap_cache/
 **/*_cache/
+/GIMF-P/MOTSP/backup
